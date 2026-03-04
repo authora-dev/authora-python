@@ -16,13 +16,18 @@ from .errors import (
     ValidationError,
 )
 from .resources.agents import AgentsResource, AsyncAgentsResource
+from .resources.alerts import AlertsResource, AsyncAlertsResource
+from .resources.api_keys import ApiKeysResource, AsyncApiKeysResource
 from .resources.audit import AsyncAuditResource, AuditResource
 from .resources.delegations import AsyncDelegationsResource, DelegationsResource
 from .resources.mcp import AsyncMcpResource, McpResource
 from .resources.notifications import AsyncNotificationsResource, NotificationsResource
+from .resources.organizations import AsyncOrganizationsResource, OrganizationsResource
 from .resources.permissions import AsyncPermissionsResource, PermissionsResource
 from .resources.policies import AsyncPoliciesResource, PoliciesResource
 from .resources.roles import AsyncRolesResource, RolesResource
+from .resources.webhooks import AsyncWebhooksResource, WebhooksResource
+from .resources.workspaces import AsyncWorkspacesResource, WorkspacesResource
 from .types import Agent, AgentVerification, CreateAgentResult
 
 __version__ = "0.2.0"
@@ -66,6 +71,11 @@ class AuthoraClient:
         self.mcp = McpResource(self._http)
         self.audit = AuditResource(self._http)
         self.notifications = NotificationsResource(self._http)
+        self.webhooks = WebhooksResource(self._http)
+        self.alerts = AlertsResource(self._http)
+        self.api_keys = ApiKeysResource(self._http)
+        self.organizations = OrganizationsResource(self._http)
+        self.workspaces = WorkspacesResource(self._http)
 
     def create_agent(
         self,
@@ -117,6 +127,25 @@ class AuthoraClient:
             permissions_cache_ttl=permissions_cache_ttl,
         )
 
+    def load_delegated_agent(
+        self,
+        agent_id: str,
+        private_key: str,
+        delegation_token: str,
+        *,
+        base_url: Optional[str] = None,
+        timeout: float = 30.0,
+        permissions_cache_ttl: float = 300.0,
+    ) -> AuthoraAgent:
+        return AuthoraAgent(
+            agent_id=agent_id,
+            private_key=private_key,
+            base_url=base_url or self._base_url,
+            timeout=timeout,
+            permissions_cache_ttl=permissions_cache_ttl,
+            delegation_token=delegation_token,
+        )
+
     def verify_agent(self, agent_id: str) -> AgentVerification:
         return self.agents.verify(agent_id)
 
@@ -149,6 +178,11 @@ class AsyncAuthoraClient:
         self.mcp = AsyncMcpResource(self._http)
         self.audit = AsyncAuditResource(self._http)
         self.notifications = AsyncNotificationsResource(self._http)
+        self.webhooks = AsyncWebhooksResource(self._http)
+        self.alerts = AsyncAlertsResource(self._http)
+        self.api_keys = AsyncApiKeysResource(self._http)
+        self.organizations = AsyncOrganizationsResource(self._http)
+        self.workspaces = AsyncWorkspacesResource(self._http)
 
     async def create_agent(
         self,
@@ -198,6 +232,25 @@ class AsyncAuthoraClient:
             base_url=base_url or self._base_url,
             timeout=timeout,
             permissions_cache_ttl=permissions_cache_ttl,
+        )
+
+    def load_delegated_agent(
+        self,
+        agent_id: str,
+        private_key: str,
+        delegation_token: str,
+        *,
+        base_url: Optional[str] = None,
+        timeout: float = 30.0,
+        permissions_cache_ttl: float = 300.0,
+    ) -> AsyncAuthoraAgent:
+        return AsyncAuthoraAgent(
+            agent_id=agent_id,
+            private_key=private_key,
+            base_url=base_url or self._base_url,
+            timeout=timeout,
+            permissions_cache_ttl=permissions_cache_ttl,
+            delegation_token=delegation_token,
         )
 
     async def verify_agent(self, agent_id: str) -> AgentVerification:

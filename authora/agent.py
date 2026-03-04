@@ -181,6 +181,7 @@ class AuthoraAgent:
         base_url: Optional[str] = None,
         timeout: float = 30.0,
         permissions_cache_ttl: float = 300.0,
+        delegation_token: Optional[str] = None,
     ) -> None:
         self._agent_id = agent_id
         self._private_key = private_key
@@ -191,6 +192,7 @@ class AuthoraAgent:
             timeout=timeout,
         )
         self._cache = _PermissionsCache(permissions_cache_ttl)
+        self._delegation_token = delegation_token
 
     @property
     def agent_id(self) -> str:
@@ -320,21 +322,29 @@ class AuthoraAgent:
         id: Optional[Any] = None,
         delegation_token: Optional[str] = None,
     ) -> McpProxyResponse:
-        body: Dict[str, Any] = {"jsonrpc": "2.0", "method": method or f"tools/{tool_name}"}
-        params: Dict[str, Any] = {"name": tool_name}
-        if arguments is not None:
-            params["arguments"] = arguments
-        body["params"] = params
-        if id is not None:
-            body["id"] = id
-        if delegation_token is not None:
-            body.setdefault("params", {})
-            body["params"]["_authora"] = {"delegation_token": delegation_token}
-
+        token = delegation_token if delegation_token is not None else self._delegation_token
         timestamp = (
             datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.")
             + f"{datetime.now(timezone.utc).microsecond // 1000:03d}Z"
         )
+        mcp_payload = build_signature_payload("POST", "/mcp/proxy", timestamp, None)
+        mcp_sig = sign(mcp_payload, self._private_key)
+        authora_meta: Dict[str, Any] = {
+            "agentId": self._agent_id,
+            "signature": mcp_sig,
+            "timestamp": timestamp,
+        }
+        if token is not None:
+            authora_meta["delegationToken"] = token
+        params: Dict[str, Any] = {"name": tool_name, "_authora": authora_meta}
+        if arguments is not None:
+            params["arguments"] = arguments
+        body: Dict[str, Any] = {
+            "jsonrpc": "2.0",
+            "id": id or f"{self._agent_id}-{int(time.monotonic() * 1000)}",
+            "method": method or "tools/call",
+            "params": params,
+        }
         body_str = json.dumps(body, separators=(",", ":"), sort_keys=True)
         payload = build_signature_payload("POST", "/mcp/proxy", timestamp, body_str)
         signature = sign(payload, self._private_key)
@@ -424,6 +434,7 @@ class AsyncAuthoraAgent:
         base_url: Optional[str] = None,
         timeout: float = 30.0,
         permissions_cache_ttl: float = 300.0,
+        delegation_token: Optional[str] = None,
     ) -> None:
         self._agent_id = agent_id
         self._private_key = private_key
@@ -434,6 +445,7 @@ class AsyncAuthoraAgent:
             timeout=timeout,
         )
         self._cache = _PermissionsCache(permissions_cache_ttl)
+        self._delegation_token = delegation_token
 
     @property
     def agent_id(self) -> str:
@@ -563,21 +575,29 @@ class AsyncAuthoraAgent:
         id: Optional[Any] = None,
         delegation_token: Optional[str] = None,
     ) -> McpProxyResponse:
-        body: Dict[str, Any] = {"jsonrpc": "2.0", "method": method or f"tools/{tool_name}"}
-        params: Dict[str, Any] = {"name": tool_name}
-        if arguments is not None:
-            params["arguments"] = arguments
-        body["params"] = params
-        if id is not None:
-            body["id"] = id
-        if delegation_token is not None:
-            body.setdefault("params", {})
-            body["params"]["_authora"] = {"delegation_token": delegation_token}
-
+        token = delegation_token if delegation_token is not None else self._delegation_token
         timestamp = (
             datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.")
             + f"{datetime.now(timezone.utc).microsecond // 1000:03d}Z"
         )
+        mcp_payload = build_signature_payload("POST", "/mcp/proxy", timestamp, None)
+        mcp_sig = sign(mcp_payload, self._private_key)
+        authora_meta: Dict[str, Any] = {
+            "agentId": self._agent_id,
+            "signature": mcp_sig,
+            "timestamp": timestamp,
+        }
+        if token is not None:
+            authora_meta["delegationToken"] = token
+        params: Dict[str, Any] = {"name": tool_name, "_authora": authora_meta}
+        if arguments is not None:
+            params["arguments"] = arguments
+        body: Dict[str, Any] = {
+            "jsonrpc": "2.0",
+            "id": id or f"{self._agent_id}-{int(time.monotonic() * 1000)}",
+            "method": method or "tools/call",
+            "params": params,
+        }
         body_str = json.dumps(body, separators=(",", ":"), sort_keys=True)
         payload = build_signature_payload("POST", "/mcp/proxy", timestamp, body_str)
         signature = sign(payload, self._private_key)
