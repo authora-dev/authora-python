@@ -69,13 +69,14 @@ class AuthoraClient:
         self.delegations = DelegationsResource(self._http)
         self.policies = PoliciesResource(self._http)
         self.mcp = McpResource(self._http)
-        self.audit = AuditResource(self._http)
+        self.audit = AuditResource(self._http, base_url=base_url, api_key=api_key)
         self.notifications = NotificationsResource(self._http)
         self.webhooks = WebhooksResource(self._http)
         self.alerts = AlertsResource(self._http)
         self.api_keys = ApiKeysResource(self._http)
         self.organizations = OrganizationsResource(self._http)
         self.workspaces = WorkspacesResource(self._http)
+        self._api_key = api_key
 
     def create_agent(
         self,
@@ -176,7 +177,7 @@ class AsyncAuthoraClient:
         self.delegations = AsyncDelegationsResource(self._http)
         self.policies = AsyncPoliciesResource(self._http)
         self.mcp = AsyncMcpResource(self._http)
-        self.audit = AsyncAuditResource(self._http)
+        self.audit = AsyncAuditResource(self._http, base_url=base_url, api_key=api_key)
         self.notifications = AsyncNotificationsResource(self._http)
         self.webhooks = AsyncWebhooksResource(self._http)
         self.alerts = AsyncAlertsResource(self._http)

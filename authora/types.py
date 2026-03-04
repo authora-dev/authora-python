@@ -79,6 +79,7 @@ class Role:
     deny_permissions: Optional[List[str]] = None
     stage: Optional[str] = None
     max_session_duration: Optional[int] = None
+    is_builtin: Optional[bool] = None
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Role":
@@ -162,12 +163,29 @@ class DelegationVerification:
 
 
 @dataclass
+class PolicyPrincipals:
+    roles: Optional[List[str]] = None
+    agents: Optional[List[str]] = None
+    workspaces: Optional[List[str]] = None
+
+    @classmethod
+    def from_dict(cls, data: Any) -> "PolicyPrincipals":
+        if isinstance(data, dict):
+            return cls(
+                roles=data.get("roles"),
+                agents=data.get("agents"),
+                workspaces=data.get("workspaces"),
+            )
+        return cls()
+
+
+@dataclass
 class Policy:
     id: str
     workspace_id: str
     name: str
     effect: str
-    principals: List[str]
+    principals: PolicyPrincipals
     resources: List[str]
     created_at: str
     updated_at: str
@@ -179,7 +197,11 @@ class Policy:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Policy":
-        return _from_dict(cls, data)
+        raw_principals = data.get("principals", {})
+        principals = PolicyPrincipals.from_dict(raw_principals)
+        known = {f.name for f in fields(cls)}
+        filtered = {k: v for k, v in data.items() if k in known and k != "principals"}
+        return cls(principals=principals, **filtered)
 
 
 @dataclass
