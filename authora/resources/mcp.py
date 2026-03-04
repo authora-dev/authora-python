@@ -152,7 +152,9 @@ class McpResource:
             List of McpTool objects.
         """
         data = self._http.get(f"/mcp/servers/{server_id}/tools")
-        return [McpTool.from_dict(item) for item in data]
+        # HTTP layer may return {"items": [...]} or a raw list
+        items = data.get("items", data) if isinstance(data, dict) else data
+        return [McpTool.from_dict(item) for item in items]
 
     def register_tool(
         self,
@@ -205,7 +207,40 @@ class McpResource:
         if request_id is not None:
             body["id"] = request_id
 
-        data = self._http.post("/mcp/proxy", body=body)
+        # The MCP proxy uses JSON-RPC with special keys like _authora that
+        # must NOT be converted from snake_case to camelCase.  Use the HTTP
+        # client's underlying httpx client directly to bypass key conversion.
+        import httpx as _httpx
+
+        headers = {
+            "Authorization": f"Bearer {self._http._api_key}",
+            "Content-Type": "application/json",
+        }
+        url = f"{self._http._base_url}/mcp/proxy"
+        response = self._http._client.request(
+            "POST",
+            url,
+            json=body,
+            headers=headers,
+        )
+        if not response.is_success:
+            from authora._http import _keys_to_snake, _raise_for_status
+
+            resp_body = (
+                _keys_to_snake(response.json())
+                if "application/json" in response.headers.get("content-type", "")
+                else response.text
+            )
+            _raise_for_status(response.status_code, resp_body, "POST", "/mcp/proxy")
+
+        resp_json = response.json()
+        # The JSON-RPC response should be returned as-is (no envelope unwrap)
+        from authora._http import _keys_to_snake
+
+        data = _keys_to_snake(resp_json)
+        # Unwrap if wrapped in {data: ...}
+        if isinstance(data, dict) and "data" in data:
+            data = data["data"]
         return McpProxyResponse.from_dict(data)
 
 
@@ -353,7 +388,9 @@ class AsyncMcpResource:
             List of McpTool objects.
         """
         data = await self._http.get(f"/mcp/servers/{server_id}/tools")
-        return [McpTool.from_dict(item) for item in data]
+        # HTTP layer may return {"items": [...]} or a raw list
+        items = data.get("items", data) if isinstance(data, dict) else data
+        return [McpTool.from_dict(item) for item in items]
 
     async def register_tool(
         self,
@@ -406,5 +443,34 @@ class AsyncMcpResource:
         if request_id is not None:
             body["id"] = request_id
 
-        data = await self._http.post("/mcp/proxy", body=body)
+        # The MCP proxy uses JSON-RPC with special keys like _authora that
+        # must NOT be converted from snake_case to camelCase.  Use the HTTP
+        # client's underlying httpx client directly to bypass key conversion.
+        headers = {
+            "Authorization": f"Bearer {self._http._api_key}",
+            "Content-Type": "application/json",
+        }
+        url = f"{self._http._base_url}/mcp/proxy"
+        response = await self._http._client.request(
+            "POST",
+            url,
+            json=body,
+            headers=headers,
+        )
+        if not response.is_success:
+            from authora._http import _keys_to_snake, _raise_for_status
+
+            resp_body = (
+                _keys_to_snake(response.json())
+                if "application/json" in response.headers.get("content-type", "")
+                else response.text
+            )
+            _raise_for_status(response.status_code, resp_body, "POST", "/mcp/proxy")
+
+        resp_json = response.json()
+        from authora._http import _keys_to_snake
+
+        data = _keys_to_snake(resp_json)
+        if isinstance(data, dict) and "data" in data:
+            data = data["data"]
         return McpProxyResponse.from_dict(data)

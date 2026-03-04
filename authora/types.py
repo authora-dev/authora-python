@@ -361,8 +361,8 @@ class PolicyEvaluationResult:
         reason: Human-readable explanation, if provided.
     """
 
-    allowed: bool
-    effect: str
+    allowed: Optional[bool] = None
+    effect: Optional[str] = None
     matched_policies: List[str] = field(default_factory=list)
     reason: Optional[str] = None
 
@@ -420,15 +420,20 @@ class McpTool:
     """
 
     id: str
-    server_id: str
     name: str
     created_at: str
+    server_id: Optional[str] = None
+    mcp_server_id: Optional[str] = None
     description: Optional[str] = None
     input_schema: Optional[Dict[str, Any]] = None
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "McpTool":
-        return _from_dict(cls, data)
+        obj = _from_dict(cls, data)
+        # The API returns mcpServerId (-> mcp_server_id); normalize to server_id
+        if obj.server_id is None and obj.mcp_server_id is not None:
+            object.__setattr__(obj, "server_id", obj.mcp_server_id)
+        return obj
 
 
 @dataclass

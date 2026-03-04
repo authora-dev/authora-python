@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "authora"
-version = "0.1.0"
+version = "0.1.1"
 description = "Official Python SDK for the Authora agent identity and authorization platform."
 readme = "README.md"
 license = "MIT"
