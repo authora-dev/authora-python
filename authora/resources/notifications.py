@@ -1,5 +1,3 @@
-"""Notifications resource -- list, count unread, mark read."""
-
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
@@ -9,8 +7,6 @@ from ..types import Notification, UnreadCountResult
 
 
 class NotificationsResource:
-    """Manage user notifications (synchronous)."""
-
     def __init__(self, http: SyncHttpClient) -> None:
         self._http = http
 
@@ -23,18 +19,6 @@ class NotificationsResource:
         limit: Optional[int] = None,
         offset: Optional[int] = None,
     ) -> List[Notification]:
-        """List notifications with optional filters.
-
-        Args:
-            organization_id: The organization to list notifications for.
-            user_id: Optional user filter.
-            unread_only: If True, return only unread notifications.
-            limit: Maximum number of notifications to return.
-            offset: Number of notifications to skip.
-
-        Returns:
-            List of Notification objects.
-        """
         query: Dict[str, Any] = {"organization_id": organization_id}
         if user_id is not None:
             query["user_id"] = user_id
@@ -54,15 +38,6 @@ class NotificationsResource:
         organization_id: str,
         user_id: Optional[str] = None,
     ) -> UnreadCountResult:
-        """Get the count of unread notifications.
-
-        Args:
-            organization_id: The organization to count for.
-            user_id: Optional user filter.
-
-        Returns:
-            An UnreadCountResult with the count.
-        """
         query: Dict[str, Any] = {"organization_id": organization_id}
         if user_id is not None:
             query["user_id"] = user_id
@@ -71,14 +46,6 @@ class NotificationsResource:
         return UnreadCountResult.from_dict(data)
 
     def mark_read(self, notification_id: str) -> Notification:
-        """Mark a single notification as read.
-
-        Args:
-            notification_id: The unique identifier of the notification.
-
-        Returns:
-            The updated Notification.
-        """
         data = self._http.patch(f"/notifications/{notification_id}/read")
         return Notification.from_dict(data)
 
@@ -88,12 +55,6 @@ class NotificationsResource:
         organization_id: str,
         user_id: Optional[str] = None,
     ) -> None:
-        """Mark all notifications as read for an organization.
-
-        Args:
-            organization_id: The organization to mark notifications for.
-            user_id: Optional user filter.
-        """
         body: Dict[str, Any] = {"organization_id": organization_id}
         if user_id is not None:
             body["user_id"] = user_id
@@ -101,8 +62,6 @@ class NotificationsResource:
 
 
 class AsyncNotificationsResource:
-    """Manage user notifications (asynchronous)."""
-
     def __init__(self, http: AsyncHttpClient) -> None:
         self._http = http
 
@@ -115,18 +74,6 @@ class AsyncNotificationsResource:
         limit: Optional[int] = None,
         offset: Optional[int] = None,
     ) -> List[Notification]:
-        """List notifications with optional filters.
-
-        Args:
-            organization_id: The organization to list notifications for.
-            user_id: Optional user filter.
-            unread_only: If True, return only unread notifications.
-            limit: Maximum number of notifications to return.
-            offset: Number of notifications to skip.
-
-        Returns:
-            List of Notification objects.
-        """
         query: Dict[str, Any] = {"organization_id": organization_id}
         if user_id is not None:
             query["user_id"] = user_id
@@ -146,15 +93,6 @@ class AsyncNotificationsResource:
         organization_id: str,
         user_id: Optional[str] = None,
     ) -> UnreadCountResult:
-        """Get the count of unread notifications.
-
-        Args:
-            organization_id: The organization to count for.
-            user_id: Optional user filter.
-
-        Returns:
-            An UnreadCountResult with the count.
-        """
         query: Dict[str, Any] = {"organization_id": organization_id}
         if user_id is not None:
             query["user_id"] = user_id
@@ -163,14 +101,6 @@ class AsyncNotificationsResource:
         return UnreadCountResult.from_dict(data)
 
     async def mark_read(self, notification_id: str) -> Notification:
-        """Mark a single notification as read.
-
-        Args:
-            notification_id: The unique identifier of the notification.
-
-        Returns:
-            The updated Notification.
-        """
         data = await self._http.patch(f"/notifications/{notification_id}/read")
         return Notification.from_dict(data)
 
@@ -180,12 +110,6 @@ class AsyncNotificationsResource:
         organization_id: str,
         user_id: Optional[str] = None,
     ) -> None:
-        """Mark all notifications as read for an organization.
-
-        Args:
-            organization_id: The organization to mark notifications for.
-            user_id: Optional user filter.
-        """
         body: Dict[str, Any] = {"organization_id": organization_id}
         if user_id is not None:
             body["user_id"] = user_id

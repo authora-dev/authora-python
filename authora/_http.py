@@ -1,10 +1,3 @@
-"""Low-level HTTP transport for the Authora SDK.
-
-Provides both synchronous and asynchronous HTTP clients built on ``httpx``.
-Handles authentication headers, query-string construction, camelCase
-conversion, and maps HTTP error responses to typed SDK exceptions.
-"""
-
 from __future__ import annotations
 
 import re
@@ -23,26 +16,19 @@ from .errors import (
     ValidationError,
 )
 
-# ---------------------------------------------------------------------------
-# Key-case conversion utilities
-# ---------------------------------------------------------------------------
-
 _CAMEL_RE = re.compile(r"(?<=[a-z0-9])([A-Z])")
 _SNAKE_RE = re.compile(r"_([a-z])")
 
 
 def _to_camel(name: str) -> str:
-    """Convert a snake_case name to camelCase."""
     return _SNAKE_RE.sub(lambda m: m.group(1).upper(), name)
 
 
 def _to_snake(name: str) -> str:
-    """Convert a camelCase name to snake_case."""
     return _CAMEL_RE.sub(r"_\1", name).lower()
 
 
 def _keys_to_camel(obj: Any) -> Any:
-    """Recursively convert all dict keys from snake_case to camelCase."""
     if isinstance(obj, dict):
         return {_to_camel(k): _keys_to_camel(v) for k, v in obj.items()}
     if isinstance(obj, list):
@@ -51,7 +37,6 @@ def _keys_to_camel(obj: Any) -> Any:
 
 
 def _keys_to_snake(obj: Any) -> Any:
-    """Recursively convert all dict keys from camelCase to snake_case."""
     if isinstance(obj, dict):
         return {_to_snake(k): _keys_to_snake(v) for k, v in obj.items()}
     if isinstance(obj, list):
@@ -59,17 +44,12 @@ def _keys_to_snake(obj: Any) -> Any:
     return obj
 
 
-# ---------------------------------------------------------------------------
-# Shared helpers
-# ---------------------------------------------------------------------------
-
 QueryValue = Union[str, int, bool, None]
 
 
 def _build_params(
     query: Optional[Dict[str, QueryValue]],
 ) -> Optional[Dict[str, str]]:
-    """Build httpx-compatible query parameters, dropping ``None`` values."""
     if not query:
         return None
     return {
@@ -80,7 +60,6 @@ def _build_params(
 
 
 def _parse_error_body(body: Any) -> Dict[str, Any]:
-    """Extract structured error info from a response body."""
     if isinstance(body, dict):
         return {
             "message": body.get("message"),
@@ -94,16 +73,6 @@ def _parse_error_body(body: Any) -> Dict[str, Any]:
 
 
 def _unwrap_response(body: Any) -> Any:
-    """Unwrap the standard backend response envelope.
-
-    The Authora API returns responses in one of these shapes:
-    - ``{ "data": T }`` for single entities
-    - ``{ "data": [...], "pagination": { "total", "page", "limit" } }`` for lists
-    - ``{ "data": [...], "meta": { "total", "page", "limit" } }`` for some lists
-
-    For paginated lists this returns ``{ "items": [...], "total": N, ... }``.
-    For single entities this returns the unwrapped ``T``.
-    """
     if isinstance(body, dict) and "data" in body:
         data = body["data"]
         pagination = body.get("pagination") or body.get("meta")
@@ -123,7 +92,6 @@ def _unwrap_response(body: Any) -> Any:
 
 
 def _raise_for_status(status: int, body: Any, method: str, path: str) -> None:
-    """Map an HTTP error status to the appropriate SDK exception."""
     parsed = _parse_error_body(body)
     prefix = f"{method} {path}"
 
@@ -163,21 +131,7 @@ def _raise_for_status(status: int, body: Any, method: str, path: str) -> None:
     )
 
 
-# ---------------------------------------------------------------------------
-# Synchronous HTTP client
-# ---------------------------------------------------------------------------
-
-
 class SyncHttpClient:
-    """Synchronous HTTP transport built on ``httpx.Client``.
-
-    Args:
-        base_url: API base URL (trailing slashes are stripped).
-        api_key: Bearer token for authentication.
-        timeout: Request timeout in seconds.
-        headers: Additional default headers.
-    """
-
     def __init__(
         self,
         base_url: str,
@@ -187,10 +141,6 @@ class SyncHttpClient:
     ) -> None:
         self._base_url = base_url.rstrip("/")
         self._api_key = api_key
-        # Do NOT set Content-Type as a default header. Sending
-        # Content-Type: application/json with an empty body causes Fastify
-        # to reject the request (FST_ERR_CTP_EMPTY_JSON_BODY).
-        # Content-Type is set per-request only when a body is present.
         default_headers = {
             "Accept": "application/json",
         }
@@ -202,8 +152,6 @@ class SyncHttpClient:
             timeout=timeout,
         )
 
-    # -- convenience methods ------------------------------------------------
-
     def get(
         self,
         path: str,
@@ -211,7 +159,6 @@ class SyncHttpClient:
         query: Optional[Dict[str, QueryValue]] = None,
         auth: bool = True,
     ) -> Any:
-        """Send a GET request and return the parsed JSON response."""
         return self._request("GET", path, query=query, auth=auth)
 
     def post(
@@ -222,7 +169,6 @@ class SyncHttpClient:
         query: Optional[Dict[str, QueryValue]] = None,
         auth: bool = True,
     ) -> Any:
-        """Send a POST request and return the parsed JSON response."""
         return self._request("POST", path, body=body, query=query, auth=auth)
 
     def patch(
@@ -233,7 +179,6 @@ class SyncHttpClient:
         query: Optional[Dict[str, QueryValue]] = None,
         auth: bool = True,
     ) -> Any:
-        """Send a PATCH request and return the parsed JSON response."""
         return self._request("PATCH", path, body=body, query=query, auth=auth)
 
     def delete(
@@ -243,14 +188,10 @@ class SyncHttpClient:
         query: Optional[Dict[str, QueryValue]] = None,
         auth: bool = True,
     ) -> Any:
-        """Send a DELETE request and return the parsed JSON response."""
         return self._request("DELETE", path, query=query, auth=auth)
 
     def close(self) -> None:
-        """Close the underlying httpx client."""
         self._client.close()
-
-    # -- internal -----------------------------------------------------------
 
     def _request(
         self,
@@ -268,7 +209,6 @@ class SyncHttpClient:
         params = _build_params(query)
         json_body = _keys_to_camel(body) if body is not None else None
 
-        # Only set Content-Type when sending a JSON body
         if json_body is not None:
             headers["Content-Type"] = "application/json"
 
@@ -302,26 +242,10 @@ class SyncHttpClient:
         if not response.is_success:
             _raise_for_status(response.status_code, body, method, path)
 
-        # Unwrap the standard backend response envelope.
-        # The Authora API returns { data: T } or { data: T[], pagination/meta: {...} }.
         return _unwrap_response(body)
 
 
-# ---------------------------------------------------------------------------
-# Asynchronous HTTP client
-# ---------------------------------------------------------------------------
-
-
 class AsyncHttpClient:
-    """Asynchronous HTTP transport built on ``httpx.AsyncClient``.
-
-    Args:
-        base_url: API base URL (trailing slashes are stripped).
-        api_key: Bearer token for authentication.
-        timeout: Request timeout in seconds.
-        headers: Additional default headers.
-    """
-
     def __init__(
         self,
         base_url: str,
@@ -342,8 +266,6 @@ class AsyncHttpClient:
             timeout=timeout,
         )
 
-    # -- convenience methods ------------------------------------------------
-
     async def get(
         self,
         path: str,
@@ -351,7 +273,6 @@ class AsyncHttpClient:
         query: Optional[Dict[str, QueryValue]] = None,
         auth: bool = True,
     ) -> Any:
-        """Send a GET request and return the parsed JSON response."""
         return await self._request("GET", path, query=query, auth=auth)
 
     async def post(
@@ -362,7 +283,6 @@ class AsyncHttpClient:
         query: Optional[Dict[str, QueryValue]] = None,
         auth: bool = True,
     ) -> Any:
-        """Send a POST request and return the parsed JSON response."""
         return await self._request("POST", path, body=body, query=query, auth=auth)
 
     async def patch(
@@ -373,7 +293,6 @@ class AsyncHttpClient:
         query: Optional[Dict[str, QueryValue]] = None,
         auth: bool = True,
     ) -> Any:
-        """Send a PATCH request and return the parsed JSON response."""
         return await self._request("PATCH", path, body=body, query=query, auth=auth)
 
     async def delete(
@@ -383,14 +302,10 @@ class AsyncHttpClient:
         query: Optional[Dict[str, QueryValue]] = None,
         auth: bool = True,
     ) -> Any:
-        """Send a DELETE request and return the parsed JSON response."""
         return await self._request("DELETE", path, query=query, auth=auth)
 
     async def close(self) -> None:
-        """Close the underlying httpx async client."""
         await self._client.aclose()
-
-    # -- internal -----------------------------------------------------------
 
     async def _request(
         self,
@@ -408,7 +323,6 @@ class AsyncHttpClient:
         params = _build_params(query)
         json_body = _keys_to_camel(body) if body is not None else None
 
-        # Only set Content-Type when sending a JSON body
         if json_body is not None:
             headers["Content-Type"] = "application/json"
 

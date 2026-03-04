@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "authora"
-version = "0.1.2"
+version = "0.2.0"
 description = "Official Python SDK for the Authora agent identity and authorization platform."
 readme = "README.md"
 license = "MIT"
@@ -28,6 +28,7 @@ classifiers = [
 ]
 dependencies = [
     "httpx>=0.25.0,<1.0.0",
+    "pynacl>=1.5.0",
 ]
 
 [project.optional-dependencies]

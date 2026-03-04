@@ -1,5 +1,3 @@
-"""Audit resource -- list events, get events, generate reports, and get metrics."""
-
 from __future__ import annotations
 
 from typing import Any, Dict, Optional
@@ -9,8 +7,6 @@ from ..types import AuditEvent, AuditMetrics, AuditReport, PaginatedList
 
 
 class AuditResource:
-    """Query audit events, generate reports, and retrieve metrics (synchronous)."""
-
     def __init__(self, http: SyncHttpClient) -> None:
         self._http = http
 
@@ -28,23 +24,6 @@ class AuditResource:
         page: Optional[int] = None,
         limit: Optional[int] = None,
     ) -> PaginatedList[AuditEvent]:
-        """List audit events with optional filters and pagination.
-
-        Args:
-            org_id: Filter by organization.
-            workspace_id: Filter by workspace.
-            agent_id: Filter by agent.
-            type: Filter by event type.
-            date_from: Start date (ISO-8601).
-            date_to: End date (ISO-8601).
-            resource: Filter by resource.
-            result: Filter by result.
-            page: Page number (1-indexed).
-            limit: Maximum number of items per page.
-
-        Returns:
-            A paginated list of AuditEvent objects.
-        """
         query: Dict[str, Any] = {}
         if org_id is not None:
             query["org_id"] = org_id
@@ -71,14 +50,6 @@ class AuditResource:
         return PaginatedList.from_dict(data, AuditEvent)
 
     def get_event(self, event_id: str) -> AuditEvent:
-        """Retrieve a single audit event by its ID.
-
-        Args:
-            event_id: The unique identifier of the audit event.
-
-        Returns:
-            The AuditEvent object.
-        """
         data = self._http.get(f"/audit/events/{event_id}")
         return AuditEvent.from_dict(data)
 
@@ -89,16 +60,6 @@ class AuditResource:
         date_from: str,
         date_to: str,
     ) -> AuditReport:
-        """Generate an audit report for a date range.
-
-        Args:
-            org_id: The organization to generate the report for.
-            date_from: Start of the reporting period (ISO-8601).
-            date_to: End of the reporting period (ISO-8601).
-
-        Returns:
-            The generated AuditReport.
-        """
         body: Dict[str, Any] = {
             "org_id": org_id,
             "date_from": date_from,
@@ -116,18 +77,6 @@ class AuditResource:
         date_from: Optional[str] = None,
         date_to: Optional[str] = None,
     ) -> AuditMetrics:
-        """Retrieve aggregated audit metrics.
-
-        Args:
-            org_id: The organization to get metrics for.
-            workspace_id: Optional workspace filter.
-            agent_id: Optional agent filter.
-            date_from: Optional start date (ISO-8601).
-            date_to: Optional end date (ISO-8601).
-
-        Returns:
-            Aggregated AuditMetrics.
-        """
         query: Dict[str, Any] = {"org_id": org_id}
         if workspace_id is not None:
             query["workspace_id"] = workspace_id
@@ -143,8 +92,6 @@ class AuditResource:
 
 
 class AsyncAuditResource:
-    """Query audit events, generate reports, and retrieve metrics (asynchronous)."""
-
     def __init__(self, http: AsyncHttpClient) -> None:
         self._http = http
 
@@ -162,23 +109,6 @@ class AsyncAuditResource:
         page: Optional[int] = None,
         limit: Optional[int] = None,
     ) -> PaginatedList[AuditEvent]:
-        """List audit events with optional filters and pagination.
-
-        Args:
-            org_id: Filter by organization.
-            workspace_id: Filter by workspace.
-            agent_id: Filter by agent.
-            type: Filter by event type.
-            date_from: Start date (ISO-8601).
-            date_to: End date (ISO-8601).
-            resource: Filter by resource.
-            result: Filter by result.
-            page: Page number (1-indexed).
-            limit: Maximum number of items per page.
-
-        Returns:
-            A paginated list of AuditEvent objects.
-        """
         query: Dict[str, Any] = {}
         if org_id is not None:
             query["org_id"] = org_id
@@ -205,14 +135,6 @@ class AsyncAuditResource:
         return PaginatedList.from_dict(data, AuditEvent)
 
     async def get_event(self, event_id: str) -> AuditEvent:
-        """Retrieve a single audit event by its ID.
-
-        Args:
-            event_id: The unique identifier of the audit event.
-
-        Returns:
-            The AuditEvent object.
-        """
         data = await self._http.get(f"/audit/events/{event_id}")
         return AuditEvent.from_dict(data)
 
@@ -223,16 +145,6 @@ class AsyncAuditResource:
         date_from: str,
         date_to: str,
     ) -> AuditReport:
-        """Generate an audit report for a date range.
-
-        Args:
-            org_id: The organization to generate the report for.
-            date_from: Start of the reporting period (ISO-8601).
-            date_to: End of the reporting period (ISO-8601).
-
-        Returns:
-            The generated AuditReport.
-        """
         body: Dict[str, Any] = {
             "org_id": org_id,
             "date_from": date_from,
@@ -250,18 +162,6 @@ class AsyncAuditResource:
         date_from: Optional[str] = None,
         date_to: Optional[str] = None,
     ) -> AuditMetrics:
-        """Retrieve aggregated audit metrics.
-
-        Args:
-            org_id: The organization to get metrics for.
-            workspace_id: Optional workspace filter.
-            agent_id: Optional agent filter.
-            date_from: Optional start date (ISO-8601).
-            date_to: Optional end date (ISO-8601).
-
-        Returns:
-            Aggregated AuditMetrics.
-        """
         query: Dict[str, Any] = {"org_id": org_id}
         if workspace_id is not None:
             query["workspace_id"] = workspace_id

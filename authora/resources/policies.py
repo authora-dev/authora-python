@@ -1,5 +1,3 @@
-"""Policies resource -- create, list, update, delete, simulate, and evaluate."""
-
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
@@ -14,12 +12,6 @@ from ..types import (
 
 
 class PoliciesResource:
-    """Manage authorization policies (synchronous).
-
-    Policies define fine-grained access control rules that determine
-    whether agents can perform specific actions on resources.
-    """
-
     def __init__(self, http: SyncHttpClient) -> None:
         self._http = http
 
@@ -37,23 +29,6 @@ class PoliciesResource:
         priority: Optional[int] = None,
         enabled: Optional[bool] = None,
     ) -> Policy:
-        """Create a new policy in a workspace.
-
-        Args:
-            workspace_id: The workspace to create the policy in.
-            name: Human-readable policy name.
-            effect: Policy effect ('allow' or 'deny').
-            principals: Agent patterns this policy applies to.
-            resources: Resource patterns this policy governs.
-            description: Optional policy description.
-            actions: Optional list of action strings.
-            conditions: Optional condition expressions.
-            priority: Optional evaluation priority (higher = evaluated first).
-            enabled: Whether the policy is active (defaults to True on the server).
-
-        Returns:
-            The newly created Policy.
-        """
         body: Dict[str, Any] = {
             "workspace_id": workspace_id,
             "name": name,
@@ -76,14 +51,6 @@ class PoliciesResource:
         return Policy.from_dict(data)
 
     def list(self, *, workspace_id: str) -> PaginatedList[Policy]:
-        """List policies in a workspace.
-
-        Args:
-            workspace_id: The workspace to list policies from.
-
-        Returns:
-            A paginated list of Policy objects.
-        """
         data = self._http.get("/policies", query={"workspace_id": workspace_id})
         return PaginatedList.from_dict(data, Policy)
 
@@ -101,23 +68,6 @@ class PoliciesResource:
         priority: Optional[int] = None,
         enabled: Optional[bool] = None,
     ) -> Policy:
-        """Update an existing policy. Only provided fields are modified.
-
-        Args:
-            policy_id: The unique identifier of the policy to update.
-            name: New policy name.
-            description: New description.
-            effect: Updated effect.
-            principals: Updated principal patterns.
-            resources: Updated resource patterns.
-            actions: Updated action list.
-            conditions: Updated conditions.
-            priority: Updated priority.
-            enabled: Updated enabled state.
-
-        Returns:
-            The updated Policy.
-        """
         body: Dict[str, Any] = {}
         if name is not None:
             body["name"] = name
@@ -142,11 +92,6 @@ class PoliciesResource:
         return Policy.from_dict(data)
 
     def delete(self, policy_id: str) -> None:
-        """Delete a policy by its ID.
-
-        Args:
-            policy_id: The unique identifier of the policy to delete.
-        """
         self._http.delete(f"/policies/{policy_id}")
 
     def simulate(
@@ -157,19 +102,6 @@ class PoliciesResource:
         resource: str,
         action: str,
     ) -> PolicySimulationResult:
-        """Simulate a policy evaluation without enforcing the result.
-
-        Useful for testing policy configurations before they go live.
-
-        Args:
-            workspace_id: The workspace context.
-            agent_id: The agent to simulate for.
-            resource: The resource to simulate access to.
-            action: The action to simulate.
-
-        Returns:
-            A PolicySimulationResult showing which policies would match.
-        """
         body: Dict[str, Any] = {
             "workspace_id": workspace_id,
             "agent_id": agent_id,
@@ -187,17 +119,6 @@ class PoliciesResource:
         resource: str,
         action: str,
     ) -> PolicyEvaluationResult:
-        """Evaluate policies for a given agent, resource, and action.
-
-        Args:
-            workspace_id: The workspace context.
-            agent_id: The agent to evaluate for.
-            resource: The resource to evaluate access to.
-            action: The action to evaluate.
-
-        Returns:
-            A PolicyEvaluationResult.
-        """
         body: Dict[str, Any] = {
             "workspace_id": workspace_id,
             "agent_id": agent_id,
@@ -209,12 +130,6 @@ class PoliciesResource:
 
 
 class AsyncPoliciesResource:
-    """Manage authorization policies (asynchronous).
-
-    Policies define fine-grained access control rules that determine
-    whether agents can perform specific actions on resources.
-    """
-
     def __init__(self, http: AsyncHttpClient) -> None:
         self._http = http
 
@@ -232,23 +147,6 @@ class AsyncPoliciesResource:
         priority: Optional[int] = None,
         enabled: Optional[bool] = None,
     ) -> Policy:
-        """Create a new policy in a workspace.
-
-        Args:
-            workspace_id: The workspace to create the policy in.
-            name: Human-readable policy name.
-            effect: Policy effect ('allow' or 'deny').
-            principals: Agent patterns this policy applies to.
-            resources: Resource patterns this policy governs.
-            description: Optional policy description.
-            actions: Optional list of action strings.
-            conditions: Optional condition expressions.
-            priority: Optional evaluation priority (higher = evaluated first).
-            enabled: Whether the policy is active (defaults to True on the server).
-
-        Returns:
-            The newly created Policy.
-        """
         body: Dict[str, Any] = {
             "workspace_id": workspace_id,
             "name": name,
@@ -271,14 +169,6 @@ class AsyncPoliciesResource:
         return Policy.from_dict(data)
 
     async def list(self, *, workspace_id: str) -> PaginatedList[Policy]:
-        """List policies in a workspace.
-
-        Args:
-            workspace_id: The workspace to list policies from.
-
-        Returns:
-            A paginated list of Policy objects.
-        """
         data = await self._http.get("/policies", query={"workspace_id": workspace_id})
         return PaginatedList.from_dict(data, Policy)
 
@@ -296,23 +186,6 @@ class AsyncPoliciesResource:
         priority: Optional[int] = None,
         enabled: Optional[bool] = None,
     ) -> Policy:
-        """Update an existing policy. Only provided fields are modified.
-
-        Args:
-            policy_id: The unique identifier of the policy to update.
-            name: New policy name.
-            description: New description.
-            effect: Updated effect.
-            principals: Updated principal patterns.
-            resources: Updated resource patterns.
-            actions: Updated action list.
-            conditions: Updated conditions.
-            priority: Updated priority.
-            enabled: Updated enabled state.
-
-        Returns:
-            The updated Policy.
-        """
         body: Dict[str, Any] = {}
         if name is not None:
             body["name"] = name
@@ -337,11 +210,6 @@ class AsyncPoliciesResource:
         return Policy.from_dict(data)
 
     async def delete(self, policy_id: str) -> None:
-        """Delete a policy by its ID.
-
-        Args:
-            policy_id: The unique identifier of the policy to delete.
-        """
         await self._http.delete(f"/policies/{policy_id}")
 
     async def simulate(
@@ -352,19 +220,6 @@ class AsyncPoliciesResource:
         resource: str,
         action: str,
     ) -> PolicySimulationResult:
-        """Simulate a policy evaluation without enforcing the result.
-
-        Useful for testing policy configurations before they go live.
-
-        Args:
-            workspace_id: The workspace context.
-            agent_id: The agent to simulate for.
-            resource: The resource to simulate access to.
-            action: The action to simulate.
-
-        Returns:
-            A PolicySimulationResult showing which policies would match.
-        """
         body: Dict[str, Any] = {
             "workspace_id": workspace_id,
             "agent_id": agent_id,
@@ -382,17 +237,6 @@ class AsyncPoliciesResource:
         resource: str,
         action: str,
     ) -> PolicyEvaluationResult:
-        """Evaluate policies for a given agent, resource, and action.
-
-        Args:
-            workspace_id: The workspace context.
-            agent_id: The agent to evaluate for.
-            resource: The resource to evaluate access to.
-            action: The action to evaluate.
-
-        Returns:
-            A PolicyEvaluationResult.
-        """
         body: Dict[str, Any] = {
             "workspace_id": workspace_id,
             "agent_id": agent_id,
