@@ -86,10 +86,16 @@ class McpResource:
         data = self._http.patch(f"/mcp/servers/{server_id}", body=body)
         return McpServer.from_dict(data)
 
+    def delete_server(self, server_id: str) -> None:
+        self._http.delete(f"/mcp/servers/{server_id}")
+
     def list_tools(self, server_id: str) -> List[McpTool]:
         data = self._http.get(f"/mcp/servers/{server_id}/tools")
         items = data.get("items", data) if isinstance(data, dict) else data
         return [McpTool.from_dict(item) for item in items]
+
+    def delete_tool(self, server_id: str, tool_id: str) -> None:
+        self._http.delete(f"/mcp/servers/{server_id}/tools/{tool_id}")
 
     def register_tool(
         self,
@@ -107,6 +113,10 @@ class McpResource:
 
         data = self._http.post(f"/mcp/servers/{server_id}/tools", body=body)
         return McpTool.from_dict(data)
+
+    def discover_tools(self, server_id: str) -> Dict[str, Any]:
+        data = self._http.post(f"/mcp/servers/{server_id}/discover")
+        return data
 
     def proxy(
         self,
@@ -231,10 +241,16 @@ class AsyncMcpResource:
         data = await self._http.patch(f"/mcp/servers/{server_id}", body=body)
         return McpServer.from_dict(data)
 
+    async def delete_server(self, server_id: str) -> None:
+        await self._http.delete(f"/mcp/servers/{server_id}")
+
     async def list_tools(self, server_id: str) -> List[McpTool]:
         data = await self._http.get(f"/mcp/servers/{server_id}/tools")
         items = data.get("items", data) if isinstance(data, dict) else data
         return [McpTool.from_dict(item) for item in items]
+
+    async def delete_tool(self, server_id: str, tool_id: str) -> None:
+        await self._http.delete(f"/mcp/servers/{server_id}/tools/{tool_id}")
 
     async def register_tool(
         self,
@@ -252,6 +268,10 @@ class AsyncMcpResource:
 
         data = await self._http.post(f"/mcp/servers/{server_id}/tools", body=body)
         return McpTool.from_dict(data)
+
+    async def discover_tools(self, server_id: str) -> Dict[str, Any]:
+        data = await self._http.post(f"/mcp/servers/{server_id}/discover")
+        return data
 
     async def proxy(
         self,

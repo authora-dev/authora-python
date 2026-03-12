@@ -303,6 +303,7 @@ class AuthoraAgent:
         target_agent_id: str,
         permissions: List[str],
         constraints: Optional[Dict[str, Any]] = None,
+        parent_delegation_id: Optional[str] = None,
     ) -> Delegation:
         body: Dict[str, Any] = {
             "issuer_agent_id": self._agent_id,
@@ -311,8 +312,39 @@ class AuthoraAgent:
         }
         if constraints is not None:
             body["constraints"] = constraints
+        if parent_delegation_id is not None:
+            body["parent_delegation_id"] = parent_delegation_id
         data = self.signed_request("POST", "/delegations", body=body)
         return Delegation.from_dict(data)
+
+    def revoke_all_delegations(self) -> Dict[str, Any]:
+        return self.signed_request("POST", f"/agents/{self._agent_id}/delegations/revoke-all")
+
+    def update_profile(
+        self,
+        *,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        framework: Optional[str] = None,
+        model_provider: Optional[str] = None,
+        model_id: Optional[str] = None,
+    ) -> Agent:
+        body: Dict[str, Any] = {}
+        if name is not None:
+            body["name"] = name
+        if description is not None:
+            body["description"] = description
+        if tags is not None:
+            body["tags"] = tags
+        if framework is not None:
+            body["framework"] = framework
+        if model_provider is not None:
+            body["model_provider"] = model_provider
+        if model_id is not None:
+            body["model_id"] = model_id
+        data = self.signed_request("PATCH", f"/agents/{self._agent_id}", body=body)
+        return Agent.from_dict(data)
 
     def call_tool(
         self,
@@ -556,6 +588,7 @@ class AsyncAuthoraAgent:
         target_agent_id: str,
         permissions: List[str],
         constraints: Optional[Dict[str, Any]] = None,
+        parent_delegation_id: Optional[str] = None,
     ) -> Delegation:
         body: Dict[str, Any] = {
             "issuer_agent_id": self._agent_id,
@@ -564,8 +597,41 @@ class AsyncAuthoraAgent:
         }
         if constraints is not None:
             body["constraints"] = constraints
+        if parent_delegation_id is not None:
+            body["parent_delegation_id"] = parent_delegation_id
         data = await self.signed_request("POST", "/delegations", body=body)
         return Delegation.from_dict(data)
+
+    async def revoke_all_delegations(self) -> Dict[str, Any]:
+        return await self.signed_request(
+            "POST", f"/agents/{self._agent_id}/delegations/revoke-all"
+        )
+
+    async def update_profile(
+        self,
+        *,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        framework: Optional[str] = None,
+        model_provider: Optional[str] = None,
+        model_id: Optional[str] = None,
+    ) -> Agent:
+        body: Dict[str, Any] = {}
+        if name is not None:
+            body["name"] = name
+        if description is not None:
+            body["description"] = description
+        if tags is not None:
+            body["tags"] = tags
+        if framework is not None:
+            body["framework"] = framework
+        if model_provider is not None:
+            body["model_provider"] = model_provider
+        if model_id is not None:
+            body["model_id"] = model_id
+        data = await self.signed_request("PATCH", f"/agents/{self._agent_id}", body=body)
+        return Agent.from_dict(data)
 
     async def call_tool(
         self,

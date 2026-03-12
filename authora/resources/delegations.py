@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 from .._http import AsyncHttpClient, SyncHttpClient
-from ..types import Delegation, DelegationVerification, PaginatedList
+from ..types import BulkRevokeResult, Delegation, DelegationVerification, PaginatedList
 
 
 class DelegationsResource:
@@ -17,6 +17,7 @@ class DelegationsResource:
         target_agent_id: str,
         permissions: List[str],
         constraints: Optional[Dict[str, Any]] = None,
+        parent_delegation_id: Optional[str] = None,
     ) -> Delegation:
         body: Dict[str, Any] = {
             "issuer_agent_id": issuer_agent_id,
@@ -25,6 +26,8 @@ class DelegationsResource:
         }
         if constraints is not None:
             body["constraints"] = constraints
+        if parent_delegation_id is not None:
+            body["parent_delegation_id"] = parent_delegation_id
 
         data = self._http.post("/delegations", body=body)
         return Delegation.from_dict(data)
@@ -36,6 +39,10 @@ class DelegationsResource:
     def revoke(self, delegation_id: str) -> Delegation:
         data = self._http.post(f"/delegations/{delegation_id}/revoke")
         return Delegation.from_dict(data)
+
+    def revoke_all(self, agent_id: str) -> BulkRevokeResult:
+        data = self._http.post(f"/agents/{agent_id}/delegations/revoke-all")
+        return BulkRevokeResult.from_dict(data)
 
     def verify(self, *, delegation_id: str) -> DelegationVerification:
         data = self._http.post("/delegations/verify", body={"delegation_id": delegation_id})
@@ -79,6 +86,7 @@ class AsyncDelegationsResource:
         target_agent_id: str,
         permissions: List[str],
         constraints: Optional[Dict[str, Any]] = None,
+        parent_delegation_id: Optional[str] = None,
     ) -> Delegation:
         body: Dict[str, Any] = {
             "issuer_agent_id": issuer_agent_id,
@@ -87,6 +95,8 @@ class AsyncDelegationsResource:
         }
         if constraints is not None:
             body["constraints"] = constraints
+        if parent_delegation_id is not None:
+            body["parent_delegation_id"] = parent_delegation_id
 
         data = await self._http.post("/delegations", body=body)
         return Delegation.from_dict(data)
@@ -98,6 +108,10 @@ class AsyncDelegationsResource:
     async def revoke(self, delegation_id: str) -> Delegation:
         data = await self._http.post(f"/delegations/{delegation_id}/revoke")
         return Delegation.from_dict(data)
+
+    async def revoke_all(self, agent_id: str) -> BulkRevokeResult:
+        data = await self._http.post(f"/agents/{agent_id}/delegations/revoke-all")
+        return BulkRevokeResult.from_dict(data)
 
     async def verify(self, *, delegation_id: str) -> DelegationVerification:
         data = await self._http.post("/delegations/verify", body={"delegation_id": delegation_id})

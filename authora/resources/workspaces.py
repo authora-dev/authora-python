@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, Optional
 
 from .._http import AsyncHttpClient, SyncHttpClient
-from ..types import PaginatedList, Workspace
+from ..types import PaginatedList, Workspace, WorkspaceStats
 
 
 class WorkspacesResource:
@@ -44,6 +44,33 @@ class WorkspacesResource:
         data = self._http.get("/workspaces", query=query)
         return PaginatedList.from_dict(data, Workspace)
 
+    def get_stats(self, workspace_id: str) -> WorkspaceStats:
+        data = self._http.get(f"/workspaces/{workspace_id}/stats")
+        return WorkspaceStats.from_dict(data)
+
+    def update(
+        self,
+        workspace_id: str,
+        *,
+        name: Optional[str] = None,
+        slug: Optional[str] = None,
+    ) -> Workspace:
+        body: Dict[str, Any] = {}
+        if name is not None:
+            body["name"] = name
+        if slug is not None:
+            body["slug"] = slug
+        data = self._http.patch(f"/workspaces/{workspace_id}", body=body)
+        return Workspace.from_dict(data)
+
+    def delete(self, workspace_id: str) -> Workspace:
+        data = self._http.delete(f"/workspaces/{workspace_id}")
+        return Workspace.from_dict(data)
+
+    def restore(self, workspace_id: str) -> Workspace:
+        data = self._http.post(f"/workspaces/{workspace_id}/restore")
+        return Workspace.from_dict(data)
+
 
 class AsyncWorkspacesResource:
     def __init__(self, http: AsyncHttpClient) -> None:
@@ -82,3 +109,30 @@ class AsyncWorkspacesResource:
             query["limit"] = limit
         data = await self._http.get("/workspaces", query=query)
         return PaginatedList.from_dict(data, Workspace)
+
+    async def get_stats(self, workspace_id: str) -> WorkspaceStats:
+        data = await self._http.get(f"/workspaces/{workspace_id}/stats")
+        return WorkspaceStats.from_dict(data)
+
+    async def update(
+        self,
+        workspace_id: str,
+        *,
+        name: Optional[str] = None,
+        slug: Optional[str] = None,
+    ) -> Workspace:
+        body: Dict[str, Any] = {}
+        if name is not None:
+            body["name"] = name
+        if slug is not None:
+            body["slug"] = slug
+        data = await self._http.patch(f"/workspaces/{workspace_id}", body=body)
+        return Workspace.from_dict(data)
+
+    async def delete(self, workspace_id: str) -> Workspace:
+        data = await self._http.delete(f"/workspaces/{workspace_id}")
+        return Workspace.from_dict(data)
+
+    async def restore(self, workspace_id: str) -> Workspace:
+        data = await self._http.post(f"/workspaces/{workspace_id}/restore")
+        return Workspace.from_dict(data)

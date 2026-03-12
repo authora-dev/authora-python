@@ -87,6 +87,33 @@ class AgentsResource:
         data = self._http.post(f"/agents/{agent_id}/rotate-key", body={"public_key": public_key})
         return Agent.from_dict(data)
 
+    def update(
+        self,
+        agent_id: str,
+        *,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        framework: Optional[str] = None,
+        model_provider: Optional[str] = None,
+        model_id: Optional[str] = None,
+    ) -> Agent:
+        body: Dict[str, Any] = {}
+        if name is not None:
+            body["name"] = name
+        if description is not None:
+            body["description"] = description
+        if tags is not None:
+            body["tags"] = tags
+        if framework is not None:
+            body["framework"] = framework
+        if model_provider is not None:
+            body["model_provider"] = model_provider
+        if model_id is not None:
+            body["model_id"] = model_id
+        data = self._http.patch(f"/agents/{agent_id}", body=body)
+        return Agent.from_dict(data)
+
 
 class AsyncAgentsResource:
     def __init__(self, http: AsyncHttpClient) -> None:
@@ -171,4 +198,31 @@ class AsyncAgentsResource:
         data = await self._http.post(
             f"/agents/{agent_id}/rotate-key", body={"public_key": public_key}
         )
+        return Agent.from_dict(data)
+
+    async def update(
+        self,
+        agent_id: str,
+        *,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        framework: Optional[str] = None,
+        model_provider: Optional[str] = None,
+        model_id: Optional[str] = None,
+    ) -> Agent:
+        body: Dict[str, Any] = {}
+        if name is not None:
+            body["name"] = name
+        if description is not None:
+            body["description"] = description
+        if tags is not None:
+            body["tags"] = tags
+        if framework is not None:
+            body["framework"] = framework
+        if model_provider is not None:
+            body["model_provider"] = model_provider
+        if model_id is not None:
+            body["model_id"] = model_id
+        data = await self._http.patch(f"/agents/{agent_id}", body=body)
         return Agent.from_dict(data)

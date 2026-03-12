@@ -28,9 +28,12 @@ from .resources.policies import AsyncPoliciesResource, PoliciesResource
 from .resources.roles import AsyncRolesResource, RolesResource
 from .resources.webhooks import AsyncWebhooksResource, WebhooksResource
 from .resources.workspaces import AsyncWorkspacesResource, WorkspacesResource
+from .resources.approvals import ApprovalsResource, AsyncApprovalsResource
+from .resources.credits import AsyncCreditsResource, CreditsResource
+from .resources.user_delegations import AsyncUserDelegationsResource, UserDelegationsResource
 from .types import Agent, AgentVerification, CreateAgentResult
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 __all__ = [
     "__version__",
@@ -76,6 +79,9 @@ class AuthoraClient:
         self.api_keys = ApiKeysResource(self._http)
         self.organizations = OrganizationsResource(self._http)
         self.workspaces = WorkspacesResource(self._http)
+        self.approvals = ApprovalsResource(self._http)
+        self.credits = CreditsResource(self._http)
+        self.user_delegations = UserDelegationsResource(self._http)
         self._api_key = api_key
 
     def create_agent(
@@ -184,6 +190,9 @@ class AsyncAuthoraClient:
         self.api_keys = AsyncApiKeysResource(self._http)
         self.organizations = AsyncOrganizationsResource(self._http)
         self.workspaces = AsyncWorkspacesResource(self._http)
+        self.approvals = AsyncApprovalsResource(self._http)
+        self.credits = AsyncCreditsResource(self._http)
+        self.user_delegations = AsyncUserDelegationsResource(self._http)
 
     async def create_agent(
         self,

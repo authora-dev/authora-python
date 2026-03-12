@@ -47,6 +47,9 @@ class Agent:
     framework: Optional[str] = None
     model_provider: Optional[str] = None
     model_id: Optional[str] = None
+    suspended_by: Optional[str] = None
+    revoked_by: Optional[str] = None
+    updated_by: Optional[str] = None
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Agent":
@@ -80,6 +83,8 @@ class Role:
     stage: Optional[str] = None
     max_session_duration: Optional[int] = None
     is_builtin: Optional[bool] = None
+    created_by: Optional[str] = None
+    updated_by: Optional[str] = None
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Role":
@@ -141,7 +146,10 @@ class Delegation:
     created_at: str
     updated_at: str
     constraints: Optional[Dict[str, Any]] = None
+    parent_delegation_id: Optional[str] = None
     expires_at: Optional[str] = None
+    created_by: Optional[str] = None
+    revoked_by: Optional[str] = None
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Delegation":
@@ -194,6 +202,8 @@ class Policy:
     conditions: Optional[Dict[str, Any]] = None
     priority: Optional[int] = None
     enabled: Optional[bool] = None
+    created_by: Optional[str] = None
+    updated_by: Optional[str] = None
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Policy":
@@ -246,6 +256,8 @@ class McpServer:
     connection_timeout: Optional[int] = None
     max_retries: Optional[int] = None
     status: Optional[str] = None
+    created_by: Optional[str] = None
+    updated_by: Optional[str] = None
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "McpServer":
@@ -366,6 +378,8 @@ class Webhook:
     created_at: str
     updated_at: str
     enabled: Optional[bool] = None
+    created_by: Optional[str] = None
+    updated_by: Optional[str] = None
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Webhook":
@@ -383,6 +397,8 @@ class Alert:
     created_at: str
     updated_at: str
     enabled: Optional[bool] = None
+    created_by: Optional[str] = None
+    updated_by: Optional[str] = None
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Alert":
@@ -400,6 +416,7 @@ class ApiKey:
     key_prefix: Optional[str] = None
     scopes: Optional[List[str]] = None
     expires_at: Optional[str] = None
+    revoked_by: Optional[str] = None
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "ApiKey":
@@ -413,6 +430,8 @@ class Organization:
     slug: str
     created_at: str
     updated_at: str
+    created_by: Optional[str] = None
+    updated_by: Optional[str] = None
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Organization":
@@ -427,9 +446,33 @@ class Workspace:
     slug: str
     created_at: str
     updated_at: str
+    created_by: Optional[str] = None
+    updated_by: Optional[str] = None
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Workspace":
+        return _from_dict(cls, data)
+
+
+@dataclass
+class WorkspaceStats:
+    total_agents: int = 0
+    active_agents: int = 0
+    suspended_agents: int = 0
+    revoked_agents: int = 0
+    pending_agents: int = 0
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "WorkspaceStats":
+        return _from_dict(cls, data)
+
+
+@dataclass
+class BulkRevokeResult:
+    revoked_count: int = 0
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "BulkRevokeResult":
         return _from_dict(cls, data)
 
 
@@ -466,3 +509,76 @@ class McpToolContext:
     timestamp: str
     delegation_token: Optional[str] = None
     verified: bool = False
+
+
+@dataclass
+class UserDelegationGrant:
+    id: str
+    user_id: str
+    user_email: str
+    agent_id: str
+    agent_org_id: str
+    user_org_id: str
+    user_workspace_id: str
+    requested_scopes: List[str]
+    granted_scopes: List[str]
+    max_duration_seconds: int
+    use_count: int
+    no_redelegation: bool
+    consent_method: str
+    status: str
+    expires_at: str
+    created_at: str
+    updated_at: str
+    trust_relationship_id: Optional[str] = None
+    max_uses: Optional[int] = None
+    renewal_interval_sec: Optional[int] = None
+    reason: Optional[str] = None
+    revoked_by: Optional[str] = None
+    revoked_reason: Optional[str] = None
+    last_renewed_at: Optional[str] = None
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "UserDelegationGrant":
+        return _from_dict(cls, data)
+
+
+@dataclass
+class UserDelegationToken:
+    token: str
+    jti: str
+    expires_at: str
+    issued_at: str
+    grant_expires_at: str
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "UserDelegationToken":
+        return _from_dict(cls, data)
+
+
+@dataclass
+class VerifyUserDelegationTokenResult:
+    valid: bool
+    revoked: bool = False
+    grant_id: Optional[str] = None
+    user_id: Optional[str] = None
+    agent_full_id: Optional[str] = None
+    scopes: Optional[List[str]] = None
+    is_cross_org: Optional[bool] = None
+    jti: Optional[str] = None
+    error: Optional[str] = None
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "VerifyUserDelegationTokenResult":
+        return _from_dict(cls, data)
+
+
+@dataclass
+class UserDelegationOrgList:
+    data: List[UserDelegationGrant]
+    pagination: Dict[str, Any]
+
+    @classmethod
+    def from_dict(cls, raw: Dict[str, Any]) -> "UserDelegationOrgList":
+        grants = [UserDelegationGrant.from_dict(g) for g in raw.get("data", [])]
+        return cls(data=grants, pagination=raw.get("pagination", {}))

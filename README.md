@@ -13,6 +13,19 @@ Official Python SDK for the [Authora](https://authora.dev) platform -- agent ide
 pip install authora
 ```
 
+## Find Your Credentials
+
+Several SDK methods require identifiers that are generated when you sign up:
+
+| Value | Format | Where to find it |
+|---|---|---|
+| **API Key** | `authora_live_...` | [Account page](https://www.authora.dev/account) > API Keys tab |
+| **Workspace ID** | `ws_...` | [Account page](https://www.authora.dev/account) > Profile tab > SDK Quick Start |
+| **User ID** | `usr_...` | [Account page](https://www.authora.dev/account) > Profile tab > User ID |
+| **Organization ID** | `org_...` | [Account page](https://www.authora.dev/account) > Profile tab > Organization ID |
+
+The `created_by` parameter used when creating agents or API keys is your **User ID** (`usr_...`).
+
 ## Quick Start
 
 ### Synchronous
@@ -21,14 +34,14 @@ pip install authora
 from authora import AuthoraClient
 
 client = AuthoraClient(
-    api_key="authora_live_...",
+    api_key="authora_live_...",     # from Account > API Keys
     # base_url="https://api.authora.dev/api/v1",  # default
     # timeout=30.0,                                 # default (seconds)
 )
 
 # Create a role
 role = client.roles.create(
-    workspace_id="ws_456",
+    workspace_id="ws_...",          # from Account > Profile
     name="data-reader",
     permissions=["data:read", "metadata:read"],
 )
@@ -118,10 +131,100 @@ except AuthoraError as e:
 | `TimeoutError`        | 408         | Request exceeded the timeout         |
 | `NetworkError`        | 0           | Network/connectivity failure         |
 
+## Agent Runtime
+
+The `AuthoraAgent` (sync) and `AsyncAuthoraAgent` (async) classes provide a full agent runtime with Ed25519 signed requests, client-side permission caching, delegation, and MCP tool calls.
+
+```python
+from authora import AuthoraClient
+
+client = AuthoraClient(api_key="authora_live_...")
+
+# Create + activate an agent (generates Ed25519 keypair locally)
+result = client.create_agent(
+    workspace_id="ws_...",          # from Account > Profile
+    name="data-processor",
+    created_by="usr_...",           # your User ID
+)
+agent, key_pair = result.agent, result.key_pair
+
+# Load the agent runtime
+runtime = client.load_agent(agent_id=agent.id, private_key=key_pair.private_key)
+
+# All requests are Ed25519-signed automatically
+profile = runtime.get_profile()
+doc = runtime.get_identity_document()
+
+# Server-side permission check
+result = runtime.check_permission("files:read", "read")
+if result.allowed:
+    print("Access granted")
+
+# Client-side cached check (deny-first, 5-minute TTL)
+if runtime.has_permission("mcp:server1:tool.query"):
+    result = runtime.call_tool(tool_name="query", arguments={"sql": "SELECT 1"})
+
+# Delegate permissions
+delegation = runtime.delegate(
+    target_agent_id="agent_...",
+    permissions=["files:read"],
+    constraints={"expires_in": "1h"},
+)
+
+# Key rotation
+updated_agent, new_key_pair = runtime.rotate_key()
+
+# Lifecycle
+runtime.suspend()
+reactivated_agent, fresh_key_pair = runtime.reactivate()
+runtime.revoke()
+```
+
+### Async Agent Runtime
+
+```python
+from authora import AsyncAuthoraClient
+
+async def main():
+    client = AsyncAuthoraClient(api_key="authora_live_...")
+    result = await client.create_agent(
+        workspace_id="ws_...",      # from Account > Profile
+        name="async-agent",
+        created_by="usr_...",       # your User ID
+    )
+    runtime = await client.load_agent(
+        agent_id=result.agent.id,
+        private_key=result.key_pair.private_key,
+    )
+    profile = await runtime.get_profile()
+    allowed = await runtime.has_permission("files:read")
+```
+
+## Cryptography
+
+Ed25519 key generation, signing, and verification via PyNaCl.
+
+```python
+from authora import generate_key_pair
+from authora.crypto import sign, verify, build_signature_payload, sha256_hash
+
+# Generate Ed25519 keypair (base64url encoded)
+key_pair = generate_key_pair()
+print(key_pair.private_key, key_pair.public_key)
+
+# Sign and verify
+signature = sign("hello world", key_pair.private_key)
+valid = verify("hello world", signature, key_pair.public_key)
+
+# Build canonical signature payload for HTTP requests
+payload = build_signature_payload("POST", "/api/v1/agents", "2025-01-01T00:00:00.000Z", "{}")
+```
+
 ## Requirements
 
 - Python 3.9+
 - [httpx](https://www.python-httpx.org/) >= 0.25.0
+- [PyNaCl](https://pynacl.readthedocs.io/) >= 1.5.0
 
 ## License
 
