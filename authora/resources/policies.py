@@ -128,6 +128,62 @@ class PoliciesResource:
         data = self._http.post("/policies/evaluate", body=body)
         return PolicyEvaluationResult.from_dict(data)
 
+    def attach_to_target(
+        self, *, policy_id: str, target_type: str, target_id: str
+    ) -> Dict[str, Any]:
+        """Attach a policy to an agent or MCP server."""
+        return self._http.post(
+            "/policies/attachments",
+            body={"policyId": policy_id, "targetType": target_type, "targetId": target_id},
+        )
+
+    def detach_from_target(self, *, policy_id: str, target_type: str, target_id: str) -> None:
+        """Detach a policy from an agent or MCP server."""
+        self._http.post(
+            "/policies/detach",
+            body={"policyId": policy_id, "targetType": target_type, "targetId": target_id},
+        )
+
+    def detach_by_id(self, attachment_id: str) -> None:
+        """Detach a policy attachment by its ID."""
+        self._http.delete(f"/policies/attachments/{attachment_id}")
+
+    def list_attachments(self, *, target_type: str, target_id: str) -> Dict[str, Any]:
+        """List all policies attached to a specific agent or MCP server."""
+        return self._http.get(
+            "/policies/attachments", query={"targetType": target_type, "targetId": target_id}
+        )
+
+    def list_policy_targets(self, policy_id: str) -> Dict[str, Any]:
+        """List all targets a policy is attached to."""
+        return self._http.get(f"/policies/{policy_id}/attachments")
+
+    def add_permission(
+        self,
+        *,
+        policy_id: str,
+        resources: Optional[List[str]] = None,
+        actions: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        """Add resources/actions to an existing policy."""
+        return self._http.post(
+            "/policies/add-permission",
+            body={"policyId": policy_id, "resources": resources or [], "actions": actions or []},
+        )
+
+    def remove_permission(
+        self,
+        *,
+        policy_id: str,
+        resources: Optional[List[str]] = None,
+        actions: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        """Remove resources/actions from a policy."""
+        return self._http.post(
+            "/policies/remove-permission",
+            body={"policyId": policy_id, "resources": resources or [], "actions": actions or []},
+        )
+
 
 class AsyncPoliciesResource:
     def __init__(self, http: AsyncHttpClient) -> None:
@@ -245,3 +301,61 @@ class AsyncPoliciesResource:
         }
         data = await self._http.post("/policies/evaluate", body=body)
         return PolicyEvaluationResult.from_dict(data)
+
+    async def attach_to_target(
+        self, *, policy_id: str, target_type: str, target_id: str
+    ) -> Dict[str, Any]:
+        """Attach a policy to an agent or MCP server."""
+        return await self._http.post(
+            "/policies/attachments",
+            body={"policyId": policy_id, "targetType": target_type, "targetId": target_id},
+        )
+
+    async def detach_from_target(
+        self, *, policy_id: str, target_type: str, target_id: str
+    ) -> None:
+        """Detach a policy from an agent or MCP server."""
+        await self._http.post(
+            "/policies/detach",
+            body={"policyId": policy_id, "targetType": target_type, "targetId": target_id},
+        )
+
+    async def detach_by_id(self, attachment_id: str) -> None:
+        """Detach a policy attachment by its ID."""
+        await self._http.delete(f"/policies/attachments/{attachment_id}")
+
+    async def list_attachments(self, *, target_type: str, target_id: str) -> Dict[str, Any]:
+        """List all policies attached to a specific agent or MCP server."""
+        return await self._http.get(
+            "/policies/attachments", query={"targetType": target_type, "targetId": target_id}
+        )
+
+    async def list_policy_targets(self, policy_id: str) -> Dict[str, Any]:
+        """List all targets a policy is attached to."""
+        return await self._http.get(f"/policies/{policy_id}/attachments")
+
+    async def add_permission(
+        self,
+        *,
+        policy_id: str,
+        resources: Optional[List[str]] = None,
+        actions: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        """Add resources/actions to an existing policy."""
+        return await self._http.post(
+            "/policies/add-permission",
+            body={"policyId": policy_id, "resources": resources or [], "actions": actions or []},
+        )
+
+    async def remove_permission(
+        self,
+        *,
+        policy_id: str,
+        resources: Optional[List[str]] = None,
+        actions: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        """Remove resources/actions from a policy."""
+        return await self._http.post(
+            "/policies/remove-permission",
+            body={"policyId": policy_id, "resources": resources or [], "actions": actions or []},
+        )

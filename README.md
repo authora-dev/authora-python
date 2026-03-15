@@ -79,7 +79,7 @@ All resources are available on both `AuthoraClient` (sync) and `AsyncAuthoraClie
 | Roles             | `client.roles`         | create, list, get, update, delete, assign, unassign, list_agent_roles |
 | Permissions       | `client.permissions`   | check, check_batch, get_effective |
 | Delegations       | `client.delegations`   | create, get, revoke, verify, list, list_by_agent |
-| Policies          | `client.policies`      | create, list, update, delete, simulate, evaluate |
+| Policies          | `client.policies`      | create, list, update, delete, simulate, evaluate, attach_to_target, detach_from_target, list_attachments, list_policy_targets, add_permission, remove_permission |
 | MCP               | `client.mcp`           | register_server, list_servers, get_server, update_server, list_tools, register_tool, proxy |
 | Audit             | `client.audit`         | list_events, get_event, create_report, get_metrics |
 | Notifications     | `client.notifications` | list, unread_count, mark_read, mark_all_read |
@@ -88,6 +88,9 @@ All resources are available on both `AuthoraClient` (sync) and `AsyncAuthoraClie
 | API Keys          | `client.api_keys`      | create, list, revoke |
 | Organizations     | `client.organizations` | create, get, list |
 | Workspaces        | `client.workspaces`    | create, get, list |
+| Approvals         | `client.approvals`     | create, list, get, decide, bulk_decide, stats, settings, update_settings, list_escalation_rules, get_escalation_rule, create_escalation_rule, update_escalation_rule, delete_escalation_rule, list_patterns, dismiss_pattern, create_policy_from_pattern, list_webhooks, create_webhook, update_webhook, delete_webhook |
+| Credits           | `client.credits`       | balance, transactions, checkout |
+| User Delegations  | `client.user_delegations` | create, get, list_by_user, list_by_agent, list_by_org, revoke, issue_token, refresh_token, verify_token, create_trust, get_trust, list_trust, approve_trust, suspend_trust, revoke_trust, get_settings, update_settings |
 
 ## Error Handling
 
