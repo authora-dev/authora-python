@@ -69,6 +69,10 @@ async def main():
         print(f"{agent.id}: {agent.status}")
 ```
 
+## Edge Endpoints
+
+For high-availability scenarios, Authora provides an edge proxy at `https://edge.authora.dev` powered by Cloudflare Workers. Agent identity verification, JWT validation, and public key lookups are served from globally distributed edge caches with 24-hour survivability if the origin is unreachable. The edge proxy runs in parallel with the primary API -- no client changes required.
+
 ## Resources
 
 All resources are available on both `AuthoraClient` (sync) and `AsyncAuthoraClient` (async):
