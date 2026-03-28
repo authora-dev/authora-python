@@ -175,6 +175,8 @@ class PolicyPrincipals:
     roles: Optional[List[str]] = None
     agents: Optional[List[str]] = None
     workspaces: Optional[List[str]] = None
+    agent_tags: Optional[List[str]] = None
+    agent_groups: Optional[List[str]] = None
 
     @classmethod
     def from_dict(cls, data: Any) -> "PolicyPrincipals":
@@ -183,8 +185,50 @@ class PolicyPrincipals:
                 roles=data.get("roles"),
                 agents=data.get("agents"),
                 workspaces=data.get("workspaces"),
+                agent_tags=data.get("agent_tags") or data.get("agentTags"),
+                agent_groups=data.get("agent_groups") or data.get("agentGroups"),
             )
         return cls()
+
+
+@dataclass
+class AgentGroup:
+    id: str
+    workspace_id: str
+    name: str
+    description: str
+    created_by: str
+    created_at: str
+    updated_at: str
+    member_count: Optional[int] = None
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "AgentGroup":
+        return _from_dict(cls, data)
+
+
+@dataclass
+class AgentGroupMember:
+    group_id: str
+    agent_id: str
+    added_by: str
+    added_at: str
+    agent_name: Optional[str] = None
+    agent_status: Optional[str] = None
+    agent_tags: Optional[List[str]] = None
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "AgentGroupMember":
+        return _from_dict(cls, data)
+
+
+@dataclass
+class BulkAssignRoleResult:
+    assigned_count: int = 0
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "BulkAssignRoleResult":
+        return _from_dict(cls, data)
 
 
 @dataclass

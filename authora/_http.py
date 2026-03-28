@@ -185,10 +185,11 @@ class SyncHttpClient:
         self,
         path: str,
         *,
+        body: Any = None,
         query: Optional[Dict[str, QueryValue]] = None,
         auth: bool = True,
     ) -> Any:
-        return self._request("DELETE", path, query=query, auth=auth)
+        return self._request("DELETE", path, body=body, query=query, auth=auth)
 
     def close(self) -> None:
         self._client.close()
@@ -299,10 +300,11 @@ class AsyncHttpClient:
         self,
         path: str,
         *,
+        body: Any = None,
         query: Optional[Dict[str, QueryValue]] = None,
         auth: bool = True,
     ) -> Any:
-        return await self._request("DELETE", path, query=query, auth=auth)
+        return await self._request("DELETE", path, body=body, query=query, auth=auth)
 
     async def close(self) -> None:
         await self._client.aclose()

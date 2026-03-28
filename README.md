@@ -122,6 +122,29 @@ All resources are available on both `AuthoraClient` (sync) and `AsyncAuthoraClie
 | Approvals         | `client.approvals`     | create, list, get, decide, bulk_decide, stats, settings, update_settings, list_escalation_rules, get_escalation_rule, create_escalation_rule, update_escalation_rule, delete_escalation_rule, list_patterns, dismiss_pattern, create_policy_from_pattern, list_webhooks, create_webhook, update_webhook, delete_webhook |
 | Credits           | `client.credits`       | balance, transactions, checkout |
 | User Delegations  | `client.user_delegations` | create, get, list_by_user, list_by_agent, list_by_org, revoke, issue_token, refresh_token, verify_token, create_trust, get_trust, list_trust, approve_trust, suspend_trust, revoke_trust, get_settings, update_settings |
+| Agent Groups      | `client.agent_groups`     | create, list, get, update, delete, add_members, remove_members, list_members |
+
+### Agent Groups
+
+```python
+# Create a group and add members
+group = client.agent_groups.create(workspace_id="ws_456", name="billing-agents")
+client.agent_groups.add_members(group.id, ["agt_abc", "agt_def"])
+
+# List members and groups
+members = client.agent_groups.list_members(group.id)
+groups = client.agents.list_groups("agt_abc")
+
+# Bulk assign role by tag
+client.agents.bulk_assign_role(role_id="role_123", tags=["production"])
+
+# Target policies by group or tag
+client.policies.create(
+    workspace_id="ws_456", name="billing-access", effect="ALLOW",
+    principals={"agentGroups": ["grp_abc"], "agentTags": ["billing"]},
+    resources=["billing:*"], actions=["read", "write"],
+)
+```
 
 ## Error Handling
 
