@@ -1,11 +1,27 @@
 # authora
 
-Official Python SDK for the [Authora](https://authora.dev) platform -- agent identity, authorization, and delegation management for AI systems.
+Authorization for AI agents -- identity, permissions, and delegation management.
 
-- Sync and async clients built on [httpx](https://www.python-httpx.org/)
-- Full type annotations with `py.typed` marker
-- Python 3.9+
-- Typed error hierarchy for precise exception handling
+## Quick Start
+
+```python
+# pip install authora
+from authora import AuthoraClient
+
+client = AuthoraClient(api_key="authora_live_...")
+
+# Create an agent
+agent = client.agents.create(
+    workspace_id="ws_...", name="my-agent", created_by="usr_...",
+)
+
+# Check a permission
+result = client.permissions.check(
+    agent_id="agt_abc", resource="files:reports/*", action="read",
+)
+if result.allowed:
+    print("Access granted")
+```
 
 ## Installation
 
@@ -13,20 +29,31 @@ Official Python SDK for the [Authora](https://authora.dev) platform -- agent ide
 pip install authora
 ```
 
-## Find Your Credentials
+## Getting Credentials
 
-Several SDK methods require identifiers that are generated when you sign up:
+**Automatic (IDE agents):** If you use Claude Code, Cursor, or OpenCode, credentials are created automatically on first run via browser sign-in. See [self-onboarding instructions](https://authora.dev/llms-onboard.txt).
+
+**Manual:** Sign up at [authora.dev/get-started](https://authora.dev/get-started), then find your credentials:
 
 | Value | Format | Where to find it |
 |---|---|---|
-| **API Key** | `authora_live_...` | [Account page](https://www.authora.dev/account) > API Keys tab |
-| **Workspace ID** | `ws_...` | [Account page](https://www.authora.dev/account) > Profile tab > SDK Quick Start |
-| **User ID** | `usr_...` | [Account page](https://www.authora.dev/account) > Profile tab > User ID |
-| **Organization ID** | `org_...` | [Account page](https://www.authora.dev/account) > Profile tab > Organization ID |
+| **API Key** | `authora_live_...` | [Dashboard](https://client.authora.dev) > API Keys |
+| **Workspace ID** | `ws_...` | [Dashboard](https://client.authora.dev) > Settings |
+| **User ID** | `usr_...` | [Dashboard](https://client.authora.dev) > Settings |
+| **Organization ID** | `org_...` | [Dashboard](https://client.authora.dev) > Settings |
+
+**Environment variables (Docker/CI):** Set `AUTHORA_API_KEY`, `AUTHORA_AGENT_ID`, `AUTHORA_ORG_ID`, `AUTHORA_WORKSPACE_ID`.
 
 The `created_by` parameter used when creating agents or API keys is your **User ID** (`usr_...`).
 
-## Quick Start
+## Features
+
+- Sync and async clients built on [httpx](https://www.python-httpx.org/)
+- Full type annotations with `py.typed` marker
+- Python 3.9+
+- Typed error hierarchy for precise exception handling
+
+## Usage
 
 ### Synchronous
 
